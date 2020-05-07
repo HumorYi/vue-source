@@ -1,0 +1,62 @@
+<!--
+ * @Author: Bamboo
+ * @AuthorEmail: bamboo8493@126.com
+ * @AuthorDescription:
+ * @Modifier:
+ * @ModifierEmail:
+ * @ModifierDescription:
+ * @Date: 2020-05-07 22:54:14
+ * @LastEditTime: 2020-05-08 02:19:14
+ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>vue-source</title>
+</head>
+
+<body>
+  <div id="app">
+    <h3>HVue</h3>
+    <p>{{counter}}</p>
+    <p h-text="counter"></p>
+    <p h-html="desc"></p>
+    <p @click="onClick">{{text}}</p>
+    <p h-on:click="onClickDirective($event, 1, 2)">{{textDirective}}</p>
+  </div>
+
+  <script src="./hvue/dep.js"></script>
+  <script src="./hvue/observe.js"></script>
+  <script src="./hvue/watcher.js"></script>
+  <script src="./hvue/compile.js"></script>
+  <script src="./hvue/index.js"></script>
+
+  <script>
+    const app = new HVue({
+      el: '#app',
+      data: {
+        counter: 1,
+        desc: '<span style="color:red">HVue go</span>',
+        text: '@event',
+        textDirective: 'h-on:event'
+      },
+      methods: {
+        onClick() {
+          this.text = this.text === '@event' ? '@click' : '@event'
+        },
+        onClickDirective(...args) {
+          console.log(args)
+          this.textDirective = this.textDirective === 'h-on:event' ? 'h-on:click' : 'h-on:event'
+        },
+      }
+    })
+
+    setInterval(() => {
+      app.counter++
+    }, 1000)
+  </script>
+</body>
+
+</html>
