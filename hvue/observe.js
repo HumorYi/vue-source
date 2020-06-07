@@ -6,30 +6,40 @@
  * @ModifierEmail:
  * @ModifierDescription:
  * @Date: 2020-05-07 23:28:13
- * @LastEditTime: 2020-05-08 01:44:58
+ * @LastEditTime: 2020-05-10 17:12:55
  */
 // 执⾏数据响应化（分辨数据是对象还是数组）
 class Observe {
   constructor(data) {
     // 判断数据类型
     if (Array.isArray(data)) {
-      // TODO: 数组
+      this.walkArray(data)
     } else {
       this.walk(data)
     }
   }
 
-  walk(obj) {
-    if (typeof obj !== 'object' || obj === null) {
+  static walk(data) {
+    if (typeof data !== 'object' || data === null) {
       return
     }
 
-    Object.keys(obj).forEach(key => this.defineReactive(obj, key, obj[key]))
+    Observe.walkObject(data)
   }
 
-  defineReactive(obj, key, val) {
+  static walkArray(arr) {
+    arr.__proto__ = arrayProto
+
+    arr.forEach(item => new Observe(item))
+  }
+
+  static walkObject(obj) {
+    Object.keys(obj).forEach(key => Observe.defineReactive(obj, key, obj[key]))
+  }
+
+  static defineReactive(obj, key, val) {
     // 防止 val 是对象，递归监听，实现监听对象内所有键值
-    this.walk(val)
+    Observe.walk(val)
 
     // 为要做响应式处理的 obj 添加 Dep
     const dep = new Dep()
@@ -42,10 +52,10 @@ class Observe {
 
         return val
       },
-      set: newVal => {
+      set(newVal) {
         if (val !== newVal) {
           // 防止 newVal 是对象，提前做一次监听
-          this.walk(newVal)
+          Observe.walk(newVal)
 
           val = newVal
 
@@ -55,4 +65,63 @@ class Observe {
       }
     })
   }
+
+  static proxy(target, origin) {
+    Object.keys(origin).forEach(key => {
+      Object.defineProperty(target, key, {
+        get() {
+          return origin[key]
+        },
+        set(newVal) {
+          if (origin[key] !== newVal) {
+            origin[key] = newVal
+          }
+        }
+      })
+    })
+  }
+
+  static def(obj, key, val, enumerable) {
+    Object.defineProperty(obj, key, {
+      value: val,
+      enumerable: !!enumerable,
+      configurable: true,
+      writable: true
+    })
+  }
+
+  walk(obj) {
+    Observe.walk(obj)
+  }
+
+  walkArray(arr) {
+    Observe.walkArray(arr)
+  }
+
+  walkObject(obj) {
+    Observe.walkObject(obj)
+  }
+
+  defineReactive(obj, key, val) {
+    Observe.defineReactive(obj, key, val)
+  }
+
+  proxy(target, origin) {
+    Observe.proxy(target, origin)
+  }
+
+  def(obj, key, val, enumerable) {
+    Observe.def(obj, key, val, enumerable)
+  }
 }
+
+const originArrayProto = Array.prototype
+const arrayProto = Object.create(originArrayProto)
+const methodsToPatch = ['push', 'pop', 'unshift', 'shift', 'sort', 'splice', 'reverse']
+
+methodsToPatch.forEach(method => {
+  arrayProto[method] = function (...args) {
+    originArrayProto[method].apply(this, args)
+    console.log('array method ' + method + ' interception ')
+  }
+})

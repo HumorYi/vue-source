@@ -6,7 +6,7 @@
  * @ModifierEmail:
  * @ModifierDescription:
  * @Date: 2020-05-07 22:54:30
- * @LastEditTime: 2020-05-08 01:47:40
+ * @LastEditTime: 2020-05-08 23:04:52
  */
 // 暗号：double kill
 
@@ -21,39 +21,24 @@
  *    实现 数据响应式 管理并进行 批量更新数据和将数据渲染到 dom 中
  */
 class HVue {
-  constructor(options) {
+  constructor(options = {}) {
     this.$options = options
     this.$data = options.data
 
     // 对 data 进行响应式处理
-    this.observe = new Observe(this.$data)
+    new Observe(this.$data)
 
     // 当前实例代理 data，可在当前实例直接访问 data 的数据
-    HVue.proxy(this, this.$data)
+    Observe.proxy(this, this.$data)
     // 当前实例代理 methods，可在当前实例直接访问 methods 的数据
-    HVue.proxy(this, options.methods)
+    Observe.proxy(this, options.methods)
 
     // 挂载 dom
     this.$mount(options.el)
   }
 
-  static proxy(use, origin) {
-    Object.keys(origin).forEach(key => {
-      Object.defineProperty(use, key, {
-        get() {
-          return origin[key]
-        },
-        set(newVal) {
-          if (origin[key] !== newVal) {
-            origin[key] = newVal
-          }
-        }
-      })
-    })
-  }
-
   static set(obj, key, val) {
-    this.observe.defineReactive(obj, key, val)
+    Observe.defineReactive(obj, key, val)
   }
 
   $set(obj, key, val) {
@@ -69,6 +54,6 @@ class HVue {
     this.$el = document.querySelector(el)
 
     // 编译 dom，初始化视图
-    new Compile(this, this.$el)
+    new Compile(this.$el, this)
   }
 }

@@ -6,7 +6,7 @@
  * @ModifierEmail:
  * @ModifierDescription:
  * @Date: 2020-05-07 22:54:14
- * @LastEditTime: 2020-05-08 02:19:14
+ * @LastEditTime: 2020-05-10 17:41:57
  -->
 <!DOCTYPE html>
 <html lang="en">
@@ -25,6 +25,8 @@
     <p h-html="desc"></p>
     <p @click="onClick">{{text}}</p>
     <p h-on:click="onClickDirective($event, 1, 2)">{{textDirective}}</p>
+    <p>{{arr}}</p>
+    <input h-model="desc" type="text">
   </div>
 
   <script src="./hvue/dep.js"></script>
@@ -40,16 +42,16 @@
         counter: 1,
         desc: '<span style="color:red">HVue go</span>',
         text: '@event',
-        textDirective: 'h-on:event'
+        textDirective: 'h-on:event',
+        arr: [1, 2, 3]
       },
       methods: {
         onClick() {
           this.text = this.text === '@event' ? '@click' : '@event'
         },
         onClickDirective(...args) {
-          console.log(args)
           this.textDirective = this.textDirective === 'h-on:event' ? 'h-on:click' : 'h-on:event'
-        },
+        }
       }
     })
 

@@ -6,13 +6,13 @@
  * @ModifierEmail:
  * @ModifierDescription:
  * @Date: 2020-05-07 22:54:34
- * @LastEditTime: 2020-05-08 02:20:15
+ * @LastEditTime: 2020-05-10 17:41:03
  */
 // 编译模板，初始化视图，收集依赖（更新函数、watcher创建）
 class Compile {
-  constructor(vm, el) {
-    this.vm = vm
+  constructor(el, vm) {
     this.el = el
+    this.vm = vm
 
     this.compile(el)
   }
@@ -43,20 +43,32 @@ class Compile {
     Array.from(node.attributes).forEach(attr => {
       const { name, value } = attr
 
-      if (name.indexOf('@') === 0) {
-        const eventName = name.substring(1)
+      if (this.isEvent(name)) {
+        const eventName = name.substring(this.isEventShortcut(name) ? 1 : 5)
 
         this.event(node, eventName, value)
-      } else if (name.indexOf('h-on:') === 0) {
-        const eventName = name.substring(5)
-
-        this.event(node, eventName, value)
-      } else if (name.indexOf('h-') === 0) {
+      } else if (this.isDirective(name)) {
         const direct = name.substring(2)
 
         this[direct] && this[direct](node, value)
       }
     })
+  }
+
+  compileText(node, express) {
+    this.text(node, express)
+  }
+
+  isEvent(attrName) {
+    return attrName.indexOf('h-on:') === 0 || this.isEventShortcut(attrName)
+  }
+
+  isEventShortcut(attrName) {
+    return attrName.indexOf('@') === 0
+  }
+
+  isDirective(attrName) {
+    return attrName.indexOf('h-') === 0
   }
 
   event(node, name, value) {
@@ -80,7 +92,6 @@ class Compile {
       }
 
       if (isTransferEventParam) {
-        console.log(...[e, ...params])
         this.vm[value](...[e, ...params])
         return
       }
@@ -89,20 +100,20 @@ class Compile {
     })
   }
 
-  text(node, value) {
-    this.compileText(node, value)
-  }
-
-  html(node, value) {
-    this.compileHtml(node, value)
-  }
-
-  compileText(node, express) {
+  text(node, express) {
     this.update(node, express, 'text')
   }
 
-  compileHtml(node, express) {
+  html(node, express) {
     this.update(node, express, 'html')
+  }
+
+  model(node, express) {
+    this.update(node, express, 'model')
+
+    node.addEventListener('input', e => {
+      this.vm[express] = e.target.value
+    })
   }
 
   update(node, express, direct) {
@@ -127,5 +138,9 @@ class Compile {
 
   htmlUpdate(node, value) {
     node.innerHTML = value
+  }
+
+  modelUpdate(node, value) {
+    node.value = value
   }
 }
